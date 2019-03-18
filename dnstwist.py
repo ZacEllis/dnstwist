@@ -25,6 +25,9 @@ __author__ = 'Marcin Ulikowski'
 __version__ = '20190425'
 __email__ = 'marcin@ulikowski.pl'
 
+# This fork maintained by @ZacEllis
+# Last updated 14 Mar 2019 
+
 import re
 import sys
 import socket
@@ -805,6 +808,21 @@ def generate_cli(domains):
 
 	return output
 
+def parser_add_args(p):
+	p.add_argument('domain', help='domain name or URL to check')
+	p.add_argument('-a', '--all', action='store_true', help='show all DNS records')
+	p.add_argument('-b', '--banners', action='store_true', help='determine HTTP and SMTP service banners')
+	p.add_argument('-d', '--dictionary', type=str, metavar='FILE', help='generate additional domains using dictionary FILE')
+	p.add_argument('-g', '--geoip', action='store_true', default=True, help='perform lookup for GeoIP location')
+	p.add_argument('-m', '--mxcheck', action='store_true', help='check if MX host can be used to intercept e-mails')
+	p.add_argument('-f', '--format', type=str, choices=['cli', 'csv', 'json', 'idle'], default='cli', help='output format (default: cli)')
+	p.add_argument('-r', '--registered', action='store_true', help='show only registered domain names')
+	p.add_argument('-s', '--ssdeep', action='store_true', help='fetch web pages and compare their fuzzy hashes to evaluate similarity')
+	p.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT, help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
+	p.add_argument('-w', '--whois', action='store_true', default=True, help='perform lookup for WHOIS creation/update time (slow)')
+	p.add_argument('--nameservers', type=str, metavar='LIST', help='comma separated list of DNS servers to query')
+	p.add_argument('--port', type=int, metavar='PORT', help='the port number to send queries to')
+
 
 def main():
 	signal.signal(signal.SIGINT, sigint_handler)
@@ -818,20 +836,8 @@ def main():
 	'''Useful as an additional source of targeted threat intelligence.'''
 	)
 
-	parser.add_argument('domain', help='domain name or URL to check')
-	parser.add_argument('-a', '--all', action='store_true', help='show all DNS records')
-	parser.add_argument('-b', '--banners', action='store_true', help='determine HTTP and SMTP service banners')
-	parser.add_argument('-d', '--dictionary', type=str, metavar='FILE', help='generate additional domains using dictionary FILE')
-	parser.add_argument('-g', '--geoip', action='store_true', help='perform lookup for GeoIP location')
-	parser.add_argument('-m', '--mxcheck', action='store_true', help='check if MX host can be used to intercept e-mails')
-	parser.add_argument('-f', '--format', type=str, choices=['cli', 'csv', 'json', 'idle'], default='cli', help='output format (default: cli)')
-	parser.add_argument('-r', '--registered', action='store_true', help='show only registered domain names')
-	parser.add_argument('-s', '--ssdeep', action='store_true', help='fetch web pages and compare their fuzzy hashes to evaluate similarity')
-	parser.add_argument('-t', '--threads', type=int, metavar='NUMBER', default=THREAD_COUNT_DEFAULT, help='start specified NUMBER of threads (default: %d)' % THREAD_COUNT_DEFAULT)
-	parser.add_argument('-w', '--whois', action='store_true', help='perform lookup for WHOIS creation/update time (slow)')
-	parser.add_argument('--nameservers', type=str, metavar='LIST', help='comma separated list of DNS servers to query')
-	parser.add_argument('--port', type=int, metavar='PORT', help='the port number to send queries to')
-
+	parser_add_args(parser)
+	
 	if len(sys.argv) < 2:
 		sys.stdout.write('%sdnstwist %s by <%s>%s\n\n' % (ST_BRI, __version__, __email__, ST_RST))
 		parser.print_help()
