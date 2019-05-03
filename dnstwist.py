@@ -26,7 +26,6 @@ __version__ = '20190425'
 __email__ = 'marcin@ulikowski.pl'
 
 # This fork maintained by @ZacEllis
-# Last updated 14 Mar 2019 
 
 import re
 import sys
@@ -93,6 +92,8 @@ REQUEST_TIMEOUT_HTTP = 5
 REQUEST_TIMEOUT_SMTP = 5
 THREAD_COUNT_DEFAULT = 10
 
+args = None
+
 if sys.platform != 'win32' and sys.stdout.isatty():
 	FG_RND = '\x1b[3%dm' % randint(1, 8)
 	FG_RED = '\x1b[31m'
@@ -118,7 +119,6 @@ else:
 
 
 def p_cli(data):
-	global args
 	if args.format == 'cli':
 		sys.stdout.write(data)
 		sys.stdout.flush()
@@ -130,13 +130,11 @@ def p_err(data):
 
 
 def p_csv(data):
-	global args
 	if args.format == 'csv':
 		sys.stdout.write(data)
 
 
 def p_json(data):
-	global args
 	if args.format == 'json':
 		sys.stdout.write(data)
 
@@ -824,6 +822,18 @@ def parser_add_args(p):
 	p.add_argument('--port', type=int, metavar='PORT', help='the port number to send queries to')
 
 
+def show_module_warnings(args):
+	if not MODULE_DNSPYTHON:
+		p_err('notice: missing module: dnspython (DNS features limited)\n')
+	if not MODULE_GEOIP and args.geoip:
+		p_err('notice: missing module: GeoIP (geographical location not available)\n')
+	if not MODULE_WHOIS and args.whois:
+		p_err('notice: missing module: whois (WHOIS database not accessible)\n')
+	if not MODULE_SSDEEP and args.ssdeep:
+		p_err('notice: missing module: ssdeep (fuzzy hashes not available)\n')
+	if not MODULE_REQUESTS and args.ssdeep:
+		p_err('notice: missing module: Requests (web page downloads not possible)\n')
+
 def main():
 	signal.signal(signal.SIGINT, sigint_handler)
 
@@ -879,16 +889,7 @@ def main():
 		p_err('error: missing GeoIP database file: %\n' % FILE_GEOIP)
 		bye(-1)
 
-	if not MODULE_DNSPYTHON:
-		p_err('notice: missing module: dnspython (DNS features limited)\n')
-	if not MODULE_GEOIP and args.geoip:
-		p_err('notice: missing module: GeoIP (geographical location not available)\n')
-	if not MODULE_WHOIS and args.whois:
-		p_err('notice: missing module: whois (WHOIS database not accessible)\n')
-	if not MODULE_SSDEEP and args.ssdeep:
-		p_err('notice: missing module: ssdeep (fuzzy hashes not available)\n')
-	if not MODULE_REQUESTS and args.ssdeep:
-		p_err('notice: missing module: Requests (web page downloads not possible)\n')
+	show_module_warnings(args)
 
 	p_cli(FG_RND + ST_BRI +
 '''     _           _            _     _
